@@ -1,0 +1,84 @@
+name: Validate Skills
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for required SKILL.md files
+        run: |
+          echo "Checking skill structure..."
+          missing=0
+          
+          for dir in skills/*/ languages/*/; do
+            if [ -d "$dir" ] && [ "$(find "$dir" -mindepth 1 -maxdepth 1 -type d)" ]; then
+              for skill_dir in "$dir"*/; do
+                if [ -d "$skill_dir" ] && [ ! -f "$skill_dir/SKILL.md" ]; then
+                  echo "ERROR: Missing SKILL.md in $skill_dir"
+                  missing=$((missing + 1))
+                fi
+              done
+            fi
+          done
+          
+          if [ $missing -gt 0 ]; then
+            echo "Found $missing skill(s) missing SKILL.md"
+            exit 1
+          fi
+          echo "All skills have required SKILL.md files"
+
+      - name: Validate SKILL.md format
+        run: |
+          echo "Checking SKILL.md format..."
+          
+          for skill_md in $(find skills languages -name "SKILL.md"); do
+            if ! head -1 "$skill_md" | grep -q "^# "; then
+              echo "ERROR: $skill_md missing title (should start with '# ')"
+              exit 1
+            fi
+            
+            if ! grep -q "^## Description" "$skill_md"; then
+              echo "ERROR: $skill_md missing '## Description' section"
+              exit 1
+            fi
+          done
+          
+          echo "SKILL.md format validation passed"
+
+      - name: Check directory naming
+        run: |
+          echo "Checking directory naming conventions..."
+          
+          invalid=$(find skills languages -type d \( -name "*[A-Z]*" -o -name "* *" \))
+          
+          if [ -n "$invalid" ]; then
+            echo "ERROR: Directories should be lowercase with hyphens:"
+            echo "$invalid"
+            exit 1
+          fi
+          
+          echo "Directory naming convention passed"
+
+  lint-markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Run markdownlint
+        run: |
+          npx markdownlint-cli2 "skills/**/*.md" "languages/**/*.md" || true

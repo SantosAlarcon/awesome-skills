@@ -1,0 +1,43 @@
+name: Label Issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  label-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labels = [];
+            
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            
+            if (title.includes('skill:') || body.includes('new skill')) {
+              labels.push('new-skill');
+            }
+            if (title.includes('bug') || body.includes('broken')) {
+              labels.push('bug');
+            }
+            if (title.includes('question') || title.includes('?')) {
+              labels.push('question');
+            }
+            if (title.includes('enhancement') || body.includes('improve')) {
+              labels.push('enhancement');
+            }
+            
+            if (labels.length > 0) {
+              github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: labels
+              });
+            }

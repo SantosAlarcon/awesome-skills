@@ -1,0 +1,55 @@
+name: Skill Request
+description: Request a new skill to be added to the collection
+title: "Skill: "
+labels: ["new-skill"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Skill Request
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category Type
+      description: Is this skill organized by purpose or language?
+      options:
+        - Purpose (e.g., web-development, testing, debugging)
+        - Language (e.g., python, typescript, go)
+    validations:
+      required: true
+
+  - type: input
+    id: category-name
+    attributes:
+      label: Category Name
+      description: "e.g., frontend, react, fastapi"
+      placeholder: "category-name"
+    validations:
+      required: true
+
+  - type: input
+    id: skill-name
+    attributes:
+      label: Skill Name
+      description: What should this skill be called?
+      placeholder: "e.g., Advanced React Patterns"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What should this skill do? Why is it useful?
+      placeholder: "Describe the skill and its use cases..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or Resources
+      description: Any specific examples, prompts, or resources to include? (optional)
+      placeholder: "Links, prompt templates, or code examples..."
